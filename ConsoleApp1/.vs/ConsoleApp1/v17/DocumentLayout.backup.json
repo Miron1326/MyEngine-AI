@@ -1,0 +1,91 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\miron\\source\\repos\\ConsoleApp1\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{98A483B9-4B89-4F97-A409-0481EAD9FD1A}|ConsoleApp1\\ConsoleApp1.csproj|c:\\users\\miron\\source\\repos\\consoleapp1\\consoleapp1\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{98A483B9-4B89-4F97-A409-0481EAD9FD1A}|ConsoleApp1\\ConsoleApp1.csproj|solutionrelative:consoleapp1\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{98A483B9-4B89-4F97-A409-0481EAD9FD1A}|ConsoleApp1\\ConsoleApp1.csproj|c:\\users\\miron\\source\\repos\\consoleapp1\\consoleapp1\\leveldata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{98A483B9-4B89-4F97-A409-0481EAD9FD1A}|ConsoleApp1\\ConsoleApp1.csproj|solutionrelative:consoleapp1\\leveldata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{98A483B9-4B89-4F97-A409-0481EAD9FD1A}|ConsoleApp1\\ConsoleApp1.csproj|c:\\users\\miron\\source\\repos\\consoleapp1\\consoleapp1\\consoleapp1.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|",
+      "RelativeMoniker": "D:0:0:{98A483B9-4B89-4F97-A409-0481EAD9FD1A}|ConsoleApp1\\ConsoleApp1.csproj|solutionrelative:consoleapp1\\consoleapp1.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}|"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{98A483B9-4B89-4F97-A409-0481EAD9FD1A}|ConsoleApp1\\ConsoleApp1.csproj|c:\\users\\miron\\source\\repos\\consoleapp1\\consoleapp1\\platformdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{98A483B9-4B89-4F97-A409-0481EAD9FD1A}|ConsoleApp1\\ConsoleApp1.csproj|solutionrelative:consoleapp1\\platformdata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 3,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:128:0:{75188d03-9892-4ae2-abf1-207126247ce5}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "ConsoleApp1.csproj",
+              "DocumentMoniker": "C:\\Users\\miron\\source\\repos\\ConsoleApp1\\ConsoleApp1\\ConsoleApp1.csproj",
+              "RelativeDocumentMoniker": "ConsoleApp1\\ConsoleApp1.csproj",
+              "ToolTip": "C:\\Users\\miron\\source\\repos\\ConsoleApp1\\ConsoleApp1\\ConsoleApp1.csproj",
+              "RelativeToolTip": "ConsoleApp1\\ConsoleApp1.csproj",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAYAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2026-09-03T14:28:00.449Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "PlatformData.cs",
+              "DocumentMoniker": "C:\\Users\\miron\\source\\repos\\ConsoleApp1\\ConsoleApp1\\PlatformData.cs",
+              "RelativeDocumentMoniker": "ConsoleApp1\\PlatformData.cs",
+              "ToolTip": "C:\\Users\\miron\\source\\repos\\ConsoleApp1\\ConsoleApp1\\PlatformData.cs",
+              "RelativeToolTip": "ConsoleApp1\\PlatformData.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-03T14:26:13.618Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\miron\\source\\repos\\ConsoleApp1\\ConsoleApp1\\Program.cs",
+              "RelativeDocumentMoniker": "ConsoleApp1\\Program.cs",
+              "ToolTip": "C:\\Users\\miron\\source\\repos\\ConsoleApp1\\ConsoleApp1\\Program.cs",
+              "RelativeToolTip": "ConsoleApp1\\Program.cs",
+              "ViewState": "AgIAAHABAAAAAAAAAAArwHoBAAAYAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-03T14:26:12.395Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "LevelData.cs",
+              "DocumentMoniker": "C:\\Users\\miron\\source\\repos\\ConsoleApp1\\ConsoleApp1\\LevelData.cs",
+              "RelativeDocumentMoniker": "ConsoleApp1\\LevelData.cs",
+              "ToolTip": "C:\\Users\\miron\\source\\repos\\ConsoleApp1\\ConsoleApp1\\LevelData.cs",
+              "RelativeToolTip": "ConsoleApp1\\LevelData.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-03T14:26:08.417Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

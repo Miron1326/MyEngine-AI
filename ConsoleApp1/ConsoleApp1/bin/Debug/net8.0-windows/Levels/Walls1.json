@@ -1,0 +1,129 @@
+{
+  "Name": "Walls1",
+  "Platforms": [
+    {
+      "X": 256,
+      "Y": 32,
+      "Width": 96,
+      "Height": 32
+    },
+    {
+      "X": 256,
+      "Y": 192,
+      "Width": 96,
+      "Height": 32
+    },
+    {
+      "X": 256,
+      "Y": 256,
+      "Width": 96,
+      "Height": 32
+    },
+    {
+      "X": 256,
+      "Y": 224,
+      "Width": 96,
+      "Height": 32
+    },
+    {
+      "X": 256,
+      "Y": 288,
+      "Width": 96,
+      "Height": 32
+    },
+    {
+      "X": 256,
+      "Y": 352,
+      "Width": 96,
+      "Height": 32
+    },
+    {
+      "X": 256,
+      "Y": 352,
+      "Width": 96,
+      "Height": 32
+    },
+    {
+      "X": 256,
+      "Y": 320,
+      "Width": 96,
+      "Height": 32
+    },
+    {
+      "X": 256,
+      "Y": 384,
+      "Width": 96,
+      "Height": 32
+    },
+    {
+      "X": 256,
+      "Y": 416,
+      "Width": 96,
+      "Height": 32
+    },
+    {
+      "X": 352,
+      "Y": 416,
+      "Width": 96,
+      "Height": 32
+    },
+    {
+      "X": 448,
+      "Y": 416,
+      "Width": 96,
+      "Height": 32
+    },
+    {
+      "X": 544,
+      "Y": 416,
+      "Width": 96,
+      "Height": 32
+    },
+    {
+      "X": 640,
+      "Y": 416,
+      "Width": 96,
+      "Height": 32
+    },
+    {
+      "X": 736,
+      "Y": 416,
+      "Width": 96,
+      "Height": 32
+    },
+    {
+      "X": 352,
+      "Y": 192,
+      "Width": 96,
+      "Height": 32
+    },
+    {
+      "X": 448,
+      "Y": 224,
+      "Width": 96,
+      "Height": 32
+    },
+    {
+      "X": 544,
+      "Y": 256,
+      "Width": 96,
+      "Height": 32
+    },
+    {
+      "X": 640,
+      "Y": 288,
+      "Width": 96,
+      "Height": 32
+    },
+    {
+      "X": 736,
+      "Y": 320,
+      "Width": 96,
+      "Height": 32
+    }
+  ],
+  "FinishLineX": 736,
+  "FinishLineY": 448,
+  "FinishLineWidth": 60,
+  "FinishLineHeight": 100
+}
