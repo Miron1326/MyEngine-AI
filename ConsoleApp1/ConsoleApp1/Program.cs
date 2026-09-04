@@ -13,12 +13,81 @@ using System;
 using System.Windows.Forms;
 class Program
 {
-    static string GetStateGameKey(Vector2 pos, Vector2 vel, RayRectangle? finish)
+    //нахождение близжайшего объекта пускает луч
+    static float Raycast(Vector2 origin, Vector2 direction, float maxDistance, List<Platform> platforms, float floorY)
     {
+        float closestDist = maxDistance;
+
+        foreach(Platform platform in platforms)
+        {
+            Vector2[] corners = new Vector2[]
+            {
+               new Vector2(platform.Rect.X, platform.Rect.Y),
+               new Vector2(platform.Rect.X + platform.Rect.Width, platform.Rect.Y),
+               new Vector2(platform.Rect.X, platform.Rect.Y + platform.Rect.Height),
+               new Vector2(platform.Rect.X + platform.Rect.Width, platform.Rect.Y + platform.Rect.Height),
+            };
+
+            foreach (var corner in corners)
+            {
+                Vector2 ToCorn = corner - origin;
+                float DistToCorn = Vector2.Distance(origin, ToCorn);
+                if (DistToCorn < 30) continue;
+
+                if(direction.X == 0 && direction.Y != 0)
+                {
+                    if(Math.Abs(corner.X - origin.X) < 30 && DistToCorn < closestDist)
+                    {
+                        if(direction.Y > 0 && corner.Y > origin.Y || direction.Y < 0 && corner.Y < origin.Y)
+                        {
+                            closestDist = DistToCorn;
+                        }
+                    }
+
+                }
+            }
+
+        }
+
+        if(direction.Y > 0)//дистанция до пола
+        {
+            float distanceToFloor = floorY - origin.Y;
+            if(distanceToFloor > 0 && distanceToFloor < closestDist)
+            {
+                closestDist = distanceToFloor;
+            }
+        }
+
+        return closestDist;
+    }
+    //Сканер верха и низа
+
+    static float[] ScanEnvironment(Vector2 pos, List<Platform> platforms, float floorY)
+    {
+        float maxDist = 500f;
+        float[] distances = new float[2];
+
+        //луч вверх
+        distances[0] = Raycast(pos, new Vector2(0, -1), maxDist, platforms, floorY);
+        //луч вниз
+        distances[0] = Raycast(pos, new Vector2(0, 1), maxDist, platforms, floorY);
+
+        return distances;
+    }
+
+    //база ИИ
+    static string GetStateGameKey(Vector2 pos, Vector2 vel, RayRectangle? finish, List<Platform> platforms, float floorY)
+    {
+        float[] distances = ScanEnvironment(pos, platforms, floorY);
+        float upDist = distances[0];
+        float downDist = distances[1];
+
         string finishDir = finish.HasValue ? (pos.X < finish.Value.X ? "R" : "L") : "C";
         string height = pos.Y > 400 ? "Low" : "Hight";
         string speed = Math.Abs(vel.X) > 200 ? "Fast" : "Slow";
-        return $"{finishDir} {height} {speed}";
+        string up = upDist < 50 ? "N" : (upDist < 150 ? "M" : "F");
+        string down = downDist < 50 ? "N" : (downDist < 150 ? "M" : "F");
+        return $"{finishDir}_{height}_{speed}_{up}_{down}";
     }
 
     static int ChooseActionAI(string stateKey, Random random, float explorationRate, Dictionary<string, float> QTable)
@@ -58,7 +127,7 @@ class Program
         return reward;
     }
 
-    static void SaveLevel(string fileName, string name, List<RayRectangle> platforms, RayRectangle? finishLine)
+    static void SaveLevel(string fileName, string name, List<Platform> platforms, RayRectangle? finishLine)
     {
         if (!Directory.Exists("Levels")) //нет папки
         {
@@ -70,10 +139,10 @@ class Program
         {
             platformDataList.Add(new PlatformData
             {
-                X = plat.X,
-                Y = plat.Y,
-                Width = plat.Width, 
-                Height = plat.Height,
+                X = plat.Rect.X,
+                Y = plat.Rect.Y,
+                Width = plat.Rect.Width, 
+                Height = plat.Rect.Height,
             });
         }
 
@@ -152,7 +221,7 @@ class Program
 
         //редактор
         bool isEditMode = false;
-        List<RayRectangle> platforms = new List<RayRectangle>();
+        List<Platform> platforms = new List<Platform>();
         //НАСТРОЙКИ РЕДАКТОРА
         const float GRID_SIZE = 32;
         const int PLATFORM_WIDTH = 96;
@@ -293,10 +362,10 @@ class Program
                         LevelData? loaded = LoadLevel(fileName);
                         if (loaded != null)
                         {
-                            platforms = new List<RayRectangle>();
+                            platforms = new List<Platform>();
                             foreach (var platData in loaded.Platforms)
                             {
-                                platforms.Add(new RayRectangle(platData.X, platData.Y, platData.Width, platData.Height));
+                                platforms.Add(new Platform(platData.X, platData.Y, platData.Width, platData.Height));
                             }
 
                             if (loaded.FinishLineX.HasValue && loaded.FinishLineY.HasValue && loaded.FinishLineWidth.HasValue && loaded.FinishLineHeight.HasValue)
@@ -331,7 +400,7 @@ class Program
                     }
                     else
                     {
-                        platforms.Add(new RayRectangle(snappedPos.X, snappedPos.Y, PLATFORM_WIDTH, PLATFORM_HIGHT));
+                        platforms.Add(new Platform(snappedPos.X, snappedPos.Y, GRID_SIZE * 2, GRID_SIZE / 2));
                     }
 
                 }
@@ -347,7 +416,7 @@ class Program
                     {
                         for (int i = platforms.Count - 1; i >= 0; i--)
                         {
-                            if (Raylib.CheckCollisionPointRec(mousePos, platforms[i]))
+                            if (Raylib.CheckCollisionPointRec(mousePos, platforms[i].Rect))
                             {
                                 platforms.RemoveAt(i);
                                 break;
@@ -371,7 +440,7 @@ class Program
                         if (isAiMode)
                         {
                             AIWinStreak++;
-                            string stateKey = GetStateGameKey(position, velocity, finishLine);
+                            string stateKey = GetStateGameKey(position, velocity, finishLine, platforms, floorY);
                             qTable[$"{stateKey}_{aiDirection}"] += 1000;
                             explorationRate -= 0.1f * (episodeTime / 1.5f);
                         }
@@ -415,35 +484,35 @@ class Program
 
                     foreach (var plat in platforms)
                     {
-                        bool collisionX = position.X + 20 > plat.X && position.X - 20 < plat.X + plat.Width;
-                        bool collisionY = position.Y + 20 > plat.Y && position.Y - 20 < plat.Y + plat.Height;
+                        bool collisionX = position.X + 20 > plat.Rect.X && position.X - 20 < plat.Rect.X + plat.Rect.Width;
+                        bool collisionY = position.Y + 20 > plat.Rect.Y && position.Y - 20 < plat.Rect.Y + plat.Rect.Height;
 
                         if (collisionX && collisionY)
                         {
                             Vector2 prevPos = position - velocity * deltaTime;
                             //сверху
-                            if (prevPos.Y + 20 <= plat.Y + 5 && velocity.Y > 0)
+                            if (prevPos.Y + 20 <= plat.Rect.Y + 5 && velocity.Y > 0)
                             {
-                                position.Y = plat.Y - 20;
+                                position.Y = plat.Rect.Y - 20;
                                 velocity.Y *= -bounceFactor;
                                 velocity.X *= FrictionK;
                                 // bouncesComplete += 1;
                             }
-                            else if (prevPos.Y - 20 >= plat.Y - 5 && velocity.Y < 0) //снизу
+                            else if (prevPos.Y - 20 >= plat.Rect.Y - 5 && velocity.Y < 0) //снизу
                             {
-                                position.Y = plat.Y + plat.Height + 20;
+                                position.Y = plat.Rect.Y + plat.Rect.Height + 20;
                                 velocity.Y *= -bounceFactor * 0.5f;
                                 bouncesComplete += 1;
                             }
                             else
                             {
-                                if (prevPos.X + 20 <= plat.X + 5)
+                                if (prevPos.X + 20 <= plat.Rect.X + 5)
                                 {
-                                    position.X = plat.X - 20;
+                                    position.X = plat.Rect.X - 20;
                                 }
-                                else if (prevPos.X - 20 <= plat.X + plat.Height - 5)
+                                else if (prevPos.X - 20 <= plat.Rect.X + plat.Rect.Height - 5)
                                 {
-                                    position.X = plat.X + plat.Width + 20;
+                                    position.X = plat.Rect.X + plat.Rect.Width + 20;
                                 }
                                 velocity.X *= -bounceFactor * 0.3f;
 
@@ -473,7 +542,7 @@ class Program
 
                 if (isAiMode)
                 {
-                    string stateKey = GetStateGameKey(position, velocity, finishLine);
+                    string stateKey = GetStateGameKey(position, velocity, finishLine, platforms, floorY);
 
                     Random rand = new Random();
                     aiDirection = ChooseActionAI(stateKey, rand, explorationRate, qTable);
@@ -482,7 +551,7 @@ class Program
                     lastReward = CalculateRewardAI(lastPos, position, finishLine, bouncesComplete, episodeTime);
 
                     //Q-Learning
-                    string prevStateKey = GetStateGameKey(lastPos, velocity, finishLine);
+                    string prevStateKey = GetStateGameKey(lastPos, velocity, finishLine, platforms, floorY);
                     string actionKey = $"{prevStateKey}_{aiDirection}";
 
                     if(qTable.ContainsKey(actionKey))
@@ -512,39 +581,62 @@ class Program
 
             }
 
-            //отрисовка
+  //отрисовка
             Raylib.BeginDrawing();
             Raylib.ClearBackground(RayColor.Black);
             Raylib.DrawCircleV(position, 20, RayColor.White); //шар
             Raylib.DrawLine(0, (int)floorY, 800, (int)floorY, RayColor.Gray); //пол
 
+            //отрисовка человеческой траектории
 
-            Vector2 bouncePoint = position;
-            bool willHitFloor = false;
-            if(velocity.Y > 0 && position.Y < floorY - 1)
+            if (!isAiMode)
             {
-                float timeToImpact = (floorY - position.Y) / velocity.Y;
-                float impactX = position.X + velocity.X * timeToImpact;
-                bouncePoint = new Vector2(impactX, floorY);
-                willHitFloor = true;
-            }
-            Raylib.DrawLineEx(position, bouncePoint, 3f, RayColor.Red);
+                Vector2 bouncePoint = position;
+                bool willHitFloor = false;
+                if (velocity.Y > 0 && position.Y < floorY - 1)
+                {
+                    float timeToImpact = (floorY - position.Y) / velocity.Y;
+                    float impactX = position.X + velocity.X * timeToImpact;
+                    bouncePoint = new Vector2(impactX, floorY);
+                    willHitFloor = true;
+                }
+                Raylib.DrawLineEx(position, bouncePoint, 3f, RayColor.Red);
 
-            if (willHitFloor)
-            {
-                Vector2 postBounceVelocity = new Vector2(velocity.X, -velocity.Y * bounceFactor);
-                Vector2 postBounceEnd = bouncePoint + postBounceVelocity * kMatch;
-                Raylib.DrawLineEx(bouncePoint, postBounceEnd, 3, RayColor.Lime);
-                Raylib.DrawCircleV(bouncePoint, 4, RayColor.White);
+                if (willHitFloor)
+                {
+                    Vector2 postBounceVelocity = new Vector2(velocity.X, -velocity.Y * bounceFactor);
+                    Vector2 postBounceEnd = bouncePoint + postBounceVelocity * kMatch;
+                    Raylib.DrawLineEx(bouncePoint, postBounceEnd, 3, RayColor.Lime);
+                    Raylib.DrawCircleV(bouncePoint, 4, RayColor.White);
+                }
             }
+
+            
 
             //рисование платформ
 
             foreach(var plat in platforms)
             {
                 RayColor color = isEditMode ? new RayColor(100, 150, 255, 255) : RayColor.Gray;
-                Raylib.DrawRectangleRec(plat, color);
-                Raylib.DrawRectangleLinesEx(plat, 1, RayColor.DarkGray);
+                Raylib.DrawRectangleRec(plat.Rect, color);
+                Raylib.DrawRectangleLinesEx(plat.Rect, 1, RayColor.DarkGray);
+            }
+
+            //рисование лучей ии
+
+            if (isAiMode)
+            {
+                float[] distances = ScanEnvironment(position, platforms, floorY);
+
+                //луч вверх
+                Vector2 upEnd = position + new Vector2(0, -distances[0]);
+                Raylib.DrawLineEx(position, upEnd, kMatch, RayColor.Magenta);
+                Raylib.DrawCircleV(upEnd, 5, RayColor.Magenta);
+
+                //луч вниз
+                Vector2 downEnd = position + new Vector2(0, distances[1]);
+                Raylib.DrawLineEx(position, downEnd, kMatch, RayColor.Orange);
+                Raylib.DrawCircleV(downEnd, 5, RayColor.Orange);
             }
 
             //рисование финиша

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "9Lw05DE1uVc=",
+  "dgSpecHash": "FpThzoRUfVs=",
   "success": true,
-  "projectFilePath": "C:\\Users\\miron\\source\\repos\\ConsoleApp1\\ConsoleApp1\\ConsoleApp1.csproj",
+  "projectFilePath": "C:\\Users\\miron\\OneDrive\\Documents\\GitHub\\MyEngine-AI\\ConsoleApp1\\ConsoleApp1\\ConsoleApp1.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\miron\\.nuget\\packages\\raylib-cs\\6.1.1\\raylib-cs.6.1.1.nupkg.sha512",
     "C:\\Users\\miron\\.nuget\\packages\\system.numerics.vectors\\4.5.0\\system.numerics.vectors.4.5.0.nupkg.sha512",
@@ -16,9 +16,9 @@
       "code": "NU1603",
       "level": "Warning",
       "message": "ConsoleApp1 зависит от Raylib-cs (>= 6.1.0.1), но версия Raylib-cs 6.1.0.1 не найдена. Использовалась версия Raylib-cs 6.1.1.",
-      "projectPath": "C:\\Users\\miron\\source\\repos\\ConsoleApp1\\ConsoleApp1\\ConsoleApp1.csproj",
+      "projectPath": "C:\\Users\\miron\\OneDrive\\Documents\\GitHub\\MyEngine-AI\\ConsoleApp1\\ConsoleApp1\\ConsoleApp1.csproj",
       "warningLevel": 1,
-      "filePath": "C:\\Users\\miron\\source\\repos\\ConsoleApp1\\ConsoleApp1\\ConsoleApp1.csproj",
+      "filePath": "C:\\Users\\miron\\OneDrive\\Documents\\GitHub\\MyEngine-AI\\ConsoleApp1\\ConsoleApp1\\ConsoleApp1.csproj",
       "libraryId": "Raylib-cs",
       "targetGraphs": [
         "net8.0-windows7.0"
