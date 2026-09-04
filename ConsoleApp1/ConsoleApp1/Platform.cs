@@ -2,32 +2,43 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using RayRectangle = Raylib_cs.Rectangle;
-using RayColor = Raylib_cs.Color;
 using System.Numerics;
+using System.Text;
+using System.Text.Json.Serialization;
+using System.Threading.Tasks;
+using RayColor = Raylib_cs.Color;
+using RayRectangle = Raylib_cs.Rectangle;
 
 namespace ConsoleApp1
 {
     internal class Platform : ILevelObject
     {
-        public RayRectangle Rect;
         public float? Health;
         public float? MaxHealth;
         public RayColor BaseColor;
 
+        [JsonIgnore]
         public string TypeName => "Platform";
-        public RayRectangle Bounds => Rect;
+        [JsonIgnore]
+        public RayRectangle Bounds => new RayRectangle(X, Y, Width, Height);
 
+        [JsonPropertyName("x")]
         public float X { get; set; }
+        [JsonPropertyName("y")]
         public float Y { get; set; }
+        [JsonPropertyName("width")]
         public float Width { get; set; }
+        [JsonPropertyName("height")]
         public float Height { get; set; }
+
+        public Platform()
+        {
+
+        }
 
         public Platform(float x, float y, float width, float height, int? health = null)
         {
-            Rect = new RayRectangle((int)x, (int)y, (int)width, (int)height);
+            X = x; Y = y; Width = width; Height = height;
             Health = health;
             MaxHealth = health;
             BaseColor = RayColor.LightGray;
@@ -35,18 +46,18 @@ namespace ConsoleApp1
 
         public void Draw()
         {
-            Raylib.DrawRectangleRec(Rect, BaseColor);
-            Raylib.DrawRectangleLinesEx(Rect, 2, RayColor.Black);
+            Raylib.DrawRectangleRec(Bounds, RayColor.LightGray);
+            Raylib.DrawRectangleLinesEx(Bounds, 2, RayColor.Magenta);
 
             if(Health < MaxHealth * 0.5f)
             {
-                Raylib.DrawLine((int)Rect.X, (int)Rect.Y, (int)(Rect.X + Rect.Width), (int)(Rect.Y + Rect.Height), RayColor.Black);
+                Raylib.DrawLine((int)X, (int)Y, (int)(X + Width), (int)(Y + Height), RayColor.Black);
             }
         }
 
         public bool CheckCollision(Vector2 ballPos, float ballRadius)
         {
-            return Raylib.CheckCollisionCircleRec(ballPos, ballRadius, Rect);
+            return Raylib.CheckCollisionCircleRec(ballPos, ballRadius, Bounds);
         }
         public bool OnCollisionWithBallAndAditionActions(Vector2 ballPos, float ballRadius)
         {
@@ -62,7 +73,7 @@ namespace ConsoleApp1
 
         public void OnDestroy()
         {
-            throw new NotImplementedException();
+            return;
         }
 
 

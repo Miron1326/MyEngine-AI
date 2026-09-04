@@ -7,8 +7,16 @@
       "RelativeMoniker": "D:0:0:{98A483B9-4B89-4F97-A409-0481EAD9FD1A}|ConsoleApp1\\ConsoleApp1.csproj|solutionrelative:consoleapp1\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
+      "AbsoluteMoniker": "D:0:0:{98A483B9-4B89-4F97-A409-0481EAD9FD1A}|ConsoleApp1\\ConsoleApp1.csproj|c:\\users\\miron\\onedrive\\documents\\github\\myengine-ai\\consoleapp1\\consoleapp1\\objectmemory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{98A483B9-4B89-4F97-A409-0481EAD9FD1A}|ConsoleApp1\\ConsoleApp1.csproj|solutionrelative:consoleapp1\\objectmemory.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{98A483B9-4B89-4F97-A409-0481EAD9FD1A}|ConsoleApp1\\ConsoleApp1.csproj|c:\\users\\miron\\onedrive\\documents\\github\\myengine-ai\\consoleapp1\\consoleapp1\\platform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{98A483B9-4B89-4F97-A409-0481EAD9FD1A}|ConsoleApp1\\ConsoleApp1.csproj|solutionrelative:consoleapp1\\platform.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{98A483B9-4B89-4F97-A409-0481EAD9FD1A}|ConsoleApp1\\ConsoleApp1.csproj|c:\\users\\miron\\onedrive\\documents\\github\\myengine-ai\\consoleapp1\\consoleapp1\\checkpoint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{98A483B9-4B89-4F97-A409-0481EAD9FD1A}|ConsoleApp1\\ConsoleApp1.csproj|solutionrelative:consoleapp1\\checkpoint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{98A483B9-4B89-4F97-A409-0481EAD9FD1A}|ConsoleApp1\\ConsoleApp1.csproj|c:\\users\\miron\\onedrive\\documents\\github\\myengine-ai\\consoleapp1\\consoleapp1\\ilevelobject.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -21,10 +29,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{98A483B9-4B89-4F97-A409-0481EAD9FD1A}|ConsoleApp1\\ConsoleApp1.csproj|c:\\users\\miron\\onedrive\\documents\\github\\myengine-ai\\consoleapp1\\consoleapp1\\leveldata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{98A483B9-4B89-4F97-A409-0481EAD9FD1A}|ConsoleApp1\\ConsoleApp1.csproj|solutionrelative:consoleapp1\\leveldata.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{98A483B9-4B89-4F97-A409-0481EAD9FD1A}|ConsoleApp1\\ConsoleApp1.csproj|c:\\users\\miron\\onedrive\\documents\\github\\myengine-ai\\consoleapp1\\consoleapp1\\checkpoint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{98A483B9-4B89-4F97-A409-0481EAD9FD1A}|ConsoleApp1\\ConsoleApp1.csproj|solutionrelative:consoleapp1\\checkpoint.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     }
   ],
   "DocumentGroupContainers": [
@@ -34,7 +38,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 200,
-          "SelectedChildIndex": 6,
+          "SelectedChildIndex": 7,
           "Children": [
             {
               "$type": "Bookmark",
@@ -46,46 +50,59 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 1,
+              "Title": "ObjectMemory.cs",
+              "DocumentMoniker": "C:\\Users\\miron\\OneDrive\\Documents\\GitHub\\MyEngine-AI\\ConsoleApp1\\ConsoleApp1\\ObjectMemory.cs",
+              "RelativeDocumentMoniker": "ConsoleApp1\\ObjectMemory.cs",
+              "ToolTip": "C:\\Users\\miron\\OneDrive\\Documents\\GitHub\\MyEngine-AI\\ConsoleApp1\\ConsoleApp1\\ObjectMemory.cs",
+              "RelativeToolTip": "ConsoleApp1\\ObjectMemory.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAxAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-09-04T21:22:21.033Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
               "Title": "ILevelObject.cs",
               "DocumentMoniker": "C:\\Users\\miron\\OneDrive\\Documents\\GitHub\\MyEngine-AI\\ConsoleApp1\\ConsoleApp1\\ILevelObject.cs",
               "RelativeDocumentMoniker": "ConsoleApp1\\ILevelObject.cs",
               "ToolTip": "C:\\Users\\miron\\OneDrive\\Documents\\GitHub\\MyEngine-AI\\ConsoleApp1\\ConsoleApp1\\ILevelObject.cs",
               "RelativeToolTip": "ConsoleApp1\\ILevelObject.cs",
-              "ViewState": "AgIAAAYAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAXAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-09-04T15:19:09.603Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 3,
               "Title": "Checkpoint.cs",
               "DocumentMoniker": "C:\\Users\\miron\\OneDrive\\Documents\\GitHub\\MyEngine-AI\\ConsoleApp1\\ConsoleApp1\\Checkpoint.cs",
               "RelativeDocumentMoniker": "ConsoleApp1\\Checkpoint.cs",
               "ToolTip": "C:\\Users\\miron\\OneDrive\\Documents\\GitHub\\MyEngine-AI\\ConsoleApp1\\ConsoleApp1\\Checkpoint.cs",
               "RelativeToolTip": "ConsoleApp1\\Checkpoint.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAApAAAAAAAAAA==",
+              "ViewState": "AgIAABkAAAAAAAAAAAAswCsAAAAwAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-09-04T09:20:17.646Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "Platform.cs",
               "DocumentMoniker": "C:\\Users\\miron\\OneDrive\\Documents\\GitHub\\MyEngine-AI\\ConsoleApp1\\ConsoleApp1\\Platform.cs",
               "RelativeDocumentMoniker": "ConsoleApp1\\Platform.cs",
               "ToolTip": "C:\\Users\\miron\\OneDrive\\Documents\\GitHub\\MyEngine-AI\\ConsoleApp1\\ConsoleApp1\\Platform.cs",
               "RelativeToolTip": "ConsoleApp1\\Platform.cs",
-              "ViewState": "AgIAAAYAAAAAAAAAAAAuwBkAAAAmAAAAAAAAAA==",
+              "ViewState": "AgIAABAAAAAAAAAAAAAAAAgAAAAhAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-09-04T08:01:17.989Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 5,
               "Title": "PlatformData.cs",
               "DocumentMoniker": "C:\\Users\\miron\\OneDrive\\Documents\\GitHub\\MyEngine-AI\\ConsoleApp1\\ConsoleApp1\\PlatformData.cs",
               "RelativeDocumentMoniker": "ConsoleApp1\\PlatformData.cs",
@@ -93,8 +110,7 @@
               "RelativeToolTip": "ConsoleApp1\\PlatformData.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAuwAgAAAATAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-03T14:26:13.618Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-03T14:26:13.618Z"
             },
             {
               "$type": "Document",
@@ -104,14 +120,14 @@
               "RelativeDocumentMoniker": "ConsoleApp1\\Program.cs",
               "ToolTip": "C:\\Users\\miron\\OneDrive\\Documents\\GitHub\\MyEngine-AI\\ConsoleApp1\\ConsoleApp1\\Program.cs",
               "RelativeToolTip": "ConsoleApp1\\Program.cs",
-              "ViewState": "AgIAAJ4BAAAAAAAAAADwv6IBAACYAAAAAAAAAA==",
+              "ViewState": "AgIAAK4AAAAAAAAAAAAowMQAAAAfAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-09-03T14:26:12.395Z",
               "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 6,
               "Title": "LevelData.cs",
               "DocumentMoniker": "C:\\Users\\miron\\OneDrive\\Documents\\GitHub\\MyEngine-AI\\ConsoleApp1\\ConsoleApp1\\LevelData.cs",
               "RelativeDocumentMoniker": "ConsoleApp1\\LevelData.cs",
@@ -119,8 +135,7 @@
               "RelativeToolTip": "ConsoleApp1\\LevelData.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAuwAkAAAATAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2026-09-03T14:26:08.417Z",
-              "EditorCaption": ""
+              "WhenOpened": "2026-09-03T14:26:08.417Z"
             }
           ]
         }

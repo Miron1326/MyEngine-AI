@@ -12,9 +12,10 @@ using System.ComponentModel.DataAnnotations;
 using System;
 using System.Windows.Forms;
 using System.ComponentModel.Design;
+using System.Windows.Forms.VisualStyles;
 class Program
 {
-    static int Restart(ref int collectedCheckpoints, ref Vector2 position, ref Vector2 velocity, ref int bouncesComplete, ref bool isFinished, ref float episodeTime, List<ILevelObject> allObjects)
+    static int Restart(ref int collectedCheckpoints, ref Vector2 position, ref Vector2 velocity, ref int bouncesComplete, ref bool isFinished, ref float episodeTime, ref float pointsPeople,List<ILevelObject> allObjects, Dictionary<string, ObjectMemory> memory)
     {
         foreach (var obj in allObjects)
         {
@@ -24,55 +25,89 @@ class Program
             }
            
         }
+        pointsPeople = 0;
         collectedCheckpoints = 0;
         position = new Vector2(400, 100);
         velocity = Vector2.Zero;
         bouncesComplete = 0;
         isFinished = false;
         episodeTime = 0f;
+        memory.Clear();
         return 0;
     }
 
     //нахождение близжайшего объекта пускает луч
-    static float Raycast(Vector2 origin, Vector2 direction, float maxDistance, List<ILevelObject> allObjects, float floorY)
+    static float RaycastWithMemory(Vector2 origin, Vector2 direction, float maxDistance, List<ILevelObject> allObjects, float floorY, Dictionary<string,ObjectMemory> memory, float currentTime, string directionName)
     {
         float closestDist = maxDistance;
+        ILevelObject closestObject = null;
 
-        foreach(Platform platform in allObjects)
+        foreach (var obj in allObjects)
         {
-            Vector2[] corners = new Vector2[]
+            if (obj is Platform platform)
             {
-               new Vector2(platform.Rect.X, platform.Rect.Y),
-               new Vector2(platform.Rect.X + platform.Rect.Width, platform.Rect.Y),
-               new Vector2(platform.Rect.X, platform.Rect.Y + platform.Rect.Height),
-               new Vector2(platform.Rect.X + platform.Rect.Width, platform.Rect.Y + platform.Rect.Height),
-            };
-
-            foreach (var corner in corners)
-            {
-                Vector2 ToCorn = corner - origin;
-                float DistToCorn = Vector2.Distance(origin, ToCorn);
-                if (DistToCorn < 30) continue;
-
-                if(direction.X == 0 && direction.Y != 0)
+                // Для вертикальных лучей (вверх/вниз)
+                if (direction.X == 0 && direction.Y != 0)
                 {
-                    if(Math.Abs(corner.X - origin.X) < 30 && DistToCorn < closestDist)
+                    // Проверяем, находится ли луч в пределах ширины платформы
+                    if (origin.X >= platform.X && origin.X <= platform.X + platform.Width)
                     {
-                        if(direction.Y > 0 && corner.Y > origin.Y || direction.Y < 0 && corner.Y < origin.Y)
+                        if (direction.Y > 0) // Луч вниз
                         {
-                            closestDist = DistToCorn;
+                            // Проверяем верхнюю сторону платформы
+                            if (platform.Y > origin.Y)
+                            {
+                                float dist = platform.Y - origin.Y;
+                                if (dist < closestDist && dist > 20) // 30px - минимальная дистанция (шарик)
+                                {
+                                    closestDist = dist;
+                                    closestObject = platform;
+                                }
+                            }
+                        }
+                        else if (direction.Y < 0) // Луч вверх
+                        {
+                            // Проверяем нижнюю сторону платформы
+                            if (platform.Y + platform.Height < origin.Y)
+                            {
+                                float dist = origin.Y - (platform.Y + platform.Height);
+                                if (dist < closestDist && dist > 30)
+                                {
+                                    closestDist = dist;
+                                    closestObject = platform;
+                                }
+                            }
                         }
                     }
-
                 }
             }
-
         }
 
-        if(direction.Y > 0)//дистанция до пола
+        //запись в память
+
+        if(closestObject != null)
+        {
+            string memoryKey = $"{directionName}_{closestObject.X}_{closestObject.Y}_";
+
+            if (!memory.ContainsKey(memoryKey))
+            {
+                memory[memoryKey] = new ObjectMemory
+                {
+                    X = closestObject.X,
+                    Y = closestObject.Y,
+                    ObjectType = closestObject.TypeName,
+                    Distance = closestDist,
+                    FirstSeenTime = currentTime
+                };
+                Console.WriteLine(memoryKey + "\n\n\n\n");
+            }
+        }
+
+        // Пол
+        if (direction.Y > 0)
         {
             float distanceToFloor = floorY - origin.Y;
-            if(distanceToFloor > 0 && distanceToFloor < closestDist)
+            if (distanceToFloor > 0 && distanceToFloor < closestDist)
             {
                 closestDist = distanceToFloor;
             }
@@ -80,25 +115,26 @@ class Program
 
         return closestDist;
     }
+
     //Сканер верха и низа
 
-    static float[] ScanEnvironment(Vector2 pos, List<ILevelObject> allObj, float floorY)
+    static float[] ScanEnvironment(Vector2 pos, List<ILevelObject> allObj, float floorY, Dictionary<string, ObjectMemory> memory, float currentTime)
     {
         float maxDist = 500f;
         float[] distances = new float[2];
 
         //луч вверх
-        distances[0] = Raycast(pos, new Vector2(0, -1), maxDist, allObj, floorY);
+        distances[0] = RaycastWithMemory(pos, new Vector2(0, -1), maxDist, allObj, floorY, memory, currentTime, "Up");
         //луч вниз
-        distances[1] = Raycast(pos, new Vector2(0, 1), maxDist, allObj, floorY);
+        distances[1] = RaycastWithMemory(pos, new Vector2(0, 1), maxDist, allObj, floorY, memory, currentTime, "Down");
 
         return distances;
     }
 
     //база ИИ
-    static string GetStateGameKey(Vector2 pos, Vector2 vel, RayRectangle? finish, List<ILevelObject> allObj, float floorY, List<Checkpoint> checkpoints, int collectedCount, int streak)
+    static string GetStateGameKey(Vector2 pos, Vector2 vel, RayRectangle? finish, List<ILevelObject> allObj, float floorY, List<Checkpoint> checkpoints, int collectedCount, int streak, Dictionary<string, ObjectMemory> memory, float Time)
     {
-        float[] distances = ScanEnvironment(pos, allObj, floorY); //данные у ИИ
+        float[] distances = ScanEnvironment(pos, allObj, floorY, memory, Time); //данные у ИИ
         float upDist = distances[0];
         float downDist = distances[1];
 
@@ -108,11 +144,11 @@ class Program
         {
             if (!Cp.IsCollected)
             {
-                float dist = Vector2.Distance(pos, new Vector2(Cp.Rect.X, Cp.Rect.Y));
+                float dist = Vector2.Distance(pos, new Vector2(Cp.X, Cp.Y));
                 if (dist < nearestCPDist)
                 {
                     nearestCPDist = dist;
-                    nearestCPDir = pos.X < Cp.Rect.X ? "R" : "L";
+                    nearestCPDir = pos.X < Cp.X ? "R" : "L";
                 }
             }
         }
@@ -147,6 +183,7 @@ class Program
         return 0;
     }
 
+    //НАГРАДЫ ИИ
     static float CalculateRewardAI(Vector2 oldPos, Vector2 newPos, RayRectangle? finish, int bounces, float timeP)
     {
         float reward = 0f;
@@ -154,12 +191,12 @@ class Program
         {
             float oldDist = Math.Abs(oldPos.X - finish.Value.X);
             float newDIst = Math.Abs(newPos.X - finish.Value.X);
-            reward += (oldDist - newDIst) * 0.1f; //разница в расстояниях
+            reward += (oldDist - newDIst) * 0.3f; //разница в расстояниях
         }
 
-        reward -= bounces * 0.5f;
+        reward -= bounces * 0.05f;
         reward += (newPos.X - oldPos.X) * 0.1f;
-        reward -= timeP * 0.2f;
+        reward -= timeP * 0.02f;
         return reward;
     }
 
@@ -173,8 +210,29 @@ class Program
         LevelData data = new LevelData { Name = name};
         foreach (var obj in allObj)
         {
-            if(obj is Platform p) { data.Platforms.Add(p); }
-            if (obj is Checkpoint c) { data.Checkpoints.Add(c); }
+            if(obj is Platform p) 
+            { 
+                data.Platforms.Add(new Platform
+                {
+                    X = p.X,
+                    Y = p.Y,
+                    Width = p.Width,
+                    Height = p.Height,
+                    Health = p.Health,
+                    MaxHealth = p.MaxHealth
+                }); 
+            }
+            if (obj is Checkpoint c) 
+            {
+                data.Checkpoints.Add(new Checkpoint
+                {
+                    X = c.X,
+                    Y = c.Y,
+                    Width = c.Width,
+                    Height = c.Height,
+                    IsCollected = false
+                });
+            }
         }
 
 
@@ -184,7 +242,7 @@ class Program
         data.FinishLineHeight = finishLine?.Height;
         
 
-        string json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
+        string json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true});
         File.WriteAllText($"Levels/{fileName}.json", json);
         Console.WriteLine($"Уровень сохранён в Levels/{fileName}.json");
     }
@@ -199,7 +257,8 @@ class Program
         }
 
         string json = File.ReadAllText(path);
-        return JsonSerializer.Deserialize<LevelData>(json);
+        var options = new JsonSerializerOptions {PropertyNameCaseInsensitive = true};
+        return JsonSerializer.Deserialize<LevelData>(json, options);
     }
 
     [STAThread]
@@ -209,10 +268,12 @@ class Program
         float MinTimeAI = 10;
         int AIWinStreak = 0;
         float MinTimePeople = 10;
-
+        float MaxPointsAI = 0;
+        float AIScore = 0;
 
         bool isAiMode = false;
         Dictionary<string, float> qTable = new Dictionary<string, float>();
+        Dictionary<string, ObjectMemory> aiMemory = new Dictionary<string, ObjectMemory>();
         float explorationRate = 0.3f;
         int aiDirection = 0;
         float lastReward = 0;
@@ -234,6 +295,8 @@ class Program
         bool isNamingMode = false;
         string nameImputBuffer = "";
 
+        float MaxPointsPeople = 0;
+        float pointsPeople = 0;
         int bouncesComplete = 0;
         float speed = 1000; // Скорость шара
         float FrictionK = 0.95f; //коэфициент трения
@@ -257,6 +320,8 @@ class Program
         //игровой цикл
         while (!Raylib.WindowShouldClose())
         {
+            pointsPeople -= 0.5f;
+            AIScore -= 0.5f;
             List<Checkpoint> checkpointList = new List<Checkpoint>();
             foreach (var checkSc in levelObjects)
             {
@@ -286,11 +351,7 @@ class Program
                 {
                     PeopleBestBounces = bouncesComplete;
                 }
-                position = new Vector2(400, 100); 
-                velocity = Vector2.Zero; 
-                bouncesComplete = 0;
-                isFinished = false;
-                episodeTime = 0f;
+                Restart(ref collectedCheckpoints, ref position, ref velocity, ref bouncesComplete, ref isFinished, ref episodeTime, ref pointsPeople, levelObjects, aiMemory);
             }
 
             if (Raylib.IsKeyDown(KeyboardKey.Up) && Raylib.IsKeyDown(KeyboardKey.M)) gravity.Y = 500;
@@ -299,11 +360,7 @@ class Program
 
             if(episodeTime > 10 && isAiMode)
             {
-                position = new Vector2(400, 100);
-                velocity = Vector2.Zero;
-                bouncesComplete = 0;
-                isFinished = false;
-                episodeTime = 0f;
+                Restart(ref collectedCheckpoints, ref position, ref velocity, ref bouncesComplete, ref isFinished, ref episodeTime, ref pointsPeople, levelObjects, aiMemory);
             }
 
             if (Raylib.IsKeyDown(KeyboardKey.B) && Raylib.IsKeyDown(KeyboardKey.Space)) bounceFactor = (int)bounceFactor;
@@ -482,61 +539,106 @@ class Program
                 //столкновение с финишем
                 if (!isFinished)
                 {
-                    if(finishLine.HasValue && Raylib.CheckCollisionCircleRec(position, 20, finishLine.Value))
+                    string stateKey = GetStateGameKey(position, velocity, finishLine, levelObjects, floorY, checkpointList, collectedCheckpoints, AIWinStreak, aiMemory, episodeTime);
+                    string winKey = $"{stateKey}_{aiDirection}";
+
+
+                    if (finishLine.HasValue && Raylib.CheckCollisionCircleRec(position, 20, finishLine.Value))
                     {
                         if(checkpointList.Count > 0 && collectedCheckpoints == 0)
                         {
                             Console.WriteLine("надо собрать хоть одну контрольную точку");
                             WinOrNotText = "Проигрышь";
-                            Restart(ref collectedCheckpoints, ref position, ref velocity, ref bouncesComplete, ref isFinished, ref episodeTime, levelObjects);
+                            Restart(ref collectedCheckpoints, ref position, ref velocity, ref bouncesComplete, ref isFinished, ref episodeTime, ref pointsPeople,levelObjects, aiMemory);
                         }
 
                         isFinished = true;
 
                         if (isAiMode && collectedCheckpoints == checkpointList.Count)
                         {
+                            AIScore += 1000;
                             AIWinStreak++;
-                            string stateKey = GetStateGameKey(position, velocity, finishLine, levelObjects, floorY, checkpointList, collectedCheckpoints, AIWinStreak);
-                            qTable[$"{stateKey}_{aiDirection}"] += 1000;
-                            explorationRate -= 0.1f * (episodeTime / 1.5f);
+
+                            if (qTable.ContainsKey(winKey))
+                            {
+                                qTable[winKey] += 1000;
+                            }
+                            else
+                            {
+                                qTable[winKey] = AIScore;
+                            }
+
+                            explorationRate += 0.1f * (episodeTime / 1.5f);
+                            explorationRate = Math.Clamp(explorationRate, 0.4f, 0.9f);
                             WinOrNotText = "Выигрышь";
                         }
-                        else
+                        else if(isAiMode)
                         {
                             AIWinStreak = 0;
                         }
 
-                            bool FilesIsEmpty = !File.Exists(csvPath) || File.ReadAllText(csvPath).Trim() == "";
+                        if (!isAiMode)
+                        {
+                            pointsPeople += 1000;
+                        }
+
+                        bool FilesIsEmpty = !File.Exists(csvPath) || File.ReadAllText(csvPath).Trim() == "";
 
                         if (FilesIsEmpty)
                         {
-                            File.WriteAllText(csvPath, "Робот ли; Отскоки человек; Уровень; Время (сек); Количество отскоков; Случайность; Статус;\n");
+                            File.WriteAllText(csvPath, "Робот ли; Отскоки человек; Макс Очки человек; Макс Очки ИИ; Уровень; Время (сек); Количество отскоков; Случайность; Статус;\n");
                         }
 
-                        if(episodeTime < MinTimeAI && isAiMode)
+                        if (isAiMode)
                         {
-                            MinTimeAI = episodeTime;
+                            if (episodeTime < MinTimeAI && isAiMode)
+                            {
+                                MinTimeAI = episodeTime;
+                            }
+                            if (qTable.ContainsKey(winKey))
+                            {
+                                if (AIScore > MaxPointsAI)
+                                {
+                                    MaxPointsAI = AIScore;
+                                }
+                            }
+                            else
+                            {
+                                qTable[winKey] = AIScore;
+                                if (AIScore > MaxPointsAI)
+                                {
+                                    MaxPointsAI = AIScore;
+                                }
+                            }
                         }
+                        
+
+
 
                         if (episodeTime < MinTimePeople && !isAiMode)
                         {
                             MinTimePeople = episodeTime;
                         }
+                        if(pointsPeople > MaxPointsPeople)
+                        {
+                            MaxPointsPeople = pointsPeople;
+                        }
 
-                        string newLine = $"{isAiMode}; {PeopleBestBounces}; {LevelName:F2}; {episodeTime:F2}; {bouncesComplete}; {explorationRate}; {WinOrNotText} \n";
+                        string newLine = $"{isAiMode}; {PeopleBestBounces}; {MaxPointsPeople}; {MaxPointsAI}; {LevelName:F2}; {episodeTime:F2}; {bouncesComplete}; {explorationRate}; {WinOrNotText} \n";
                         File.AppendAllText(csvPath, newLine);
 
-                        Console.WriteLine($"\nданные сохранены в telemetry.csv. Лучшая скорость на данный момент при выигрыше AI = {MinTimeAI}. Человек = {MinTimePeople}\n");
-                        Restart(ref collectedCheckpoints, ref position, ref velocity, ref bouncesComplete, ref isFinished, ref episodeTime, levelObjects);
+                        Console.WriteLine($"\nданные сохранены в telemetry.csv. Лучшая скорость на данный момент при выигрыше AI = {MinTimeAI}. Человек = {MinTimePeople}.\n Макс очки: человек {MaxPointsPeople}, ии {MaxPointsAI}\n");
+                        Restart(ref collectedCheckpoints, ref position, ref velocity, ref bouncesComplete, ref isFinished, ref episodeTime, ref pointsPeople, levelObjects,aiMemory);
                     }
                 }
                 else
                 {
                     AIWinStreak--;
-                    explorationRate += 0.1f;
+                    explorationRate -= 0.1f;
+                    explorationRate = Math.Clamp(explorationRate, 0.4f, 0.9f);
                 }
 
-                //столкновения с контрольными точками
+      //столкновения с контрольными точками
                 for(int i = levelObjects.Count - 1; i >= 0; i--)
                 {
                     var obj = levelObjects[i];
@@ -552,6 +654,24 @@ class Program
                         if(obj is Checkpoint cp && cp.IsCollected)
                         {
                             collectedCheckpoints++;
+                            if (!isAiMode)
+                            {
+                                pointsPeople += 500;
+                            }
+                            else
+                            {
+                                AIScore += 500;
+                            }
+                            string stateKey = GetStateGameKey(position, velocity, finishLine, levelObjects, floorY, levelObjects.OfType<Checkpoint>().ToList(), collectedCheckpoints, AIWinStreak, aiMemory, episodeTime);
+                            string actionKey = $"{stateKey}_{aiDirection}";
+                            if (qTable.ContainsKey(actionKey))
+                            {
+                                qTable[actionKey] += 500;
+                            }
+                            else
+                            {
+                                qTable[actionKey] = AIScore;
+                            }
                         }
                     }
                 }
@@ -563,35 +683,35 @@ class Program
 
                     if(obj is Platform plat)
                     {
-                        bool collisionX = position.X + 20 > plat.Rect.X && position.X - 20 < plat.Rect.X + plat.Rect.Width;
-                        bool collisionY = position.Y + 20 > plat.Rect.Y && position.Y - 20 < plat.Rect.Y + plat.Rect.Height;
+                        bool collisionX = position.X + 20 > plat.X && position.X - 20 < plat.X + plat.Width;
+                        bool collisionY = position.Y + 20 > plat.Y && position.Y - 20 < plat.Y + plat.Height;
 
                         if (collisionX && collisionY)
                         {
                             Vector2 prevPos = position - velocity * deltaTime;
                             //сверху
-                            if (prevPos.Y + 20 <= plat.Rect.Y + 5 && velocity.Y > 0)
+                            if (prevPos.Y + 20 <= plat.Y + 5 && velocity.Y > 0)
                             {
-                                position.Y = plat.Rect.Y - 20;
+                                position.Y = plat.Y - 20;
                                 velocity.Y *= -bounceFactor;
                                 velocity.X *= FrictionK;
                                 // bouncesComplete += 1;
                             }
-                            else if (prevPos.Y - 20 >= plat.Rect.Y - 5 && velocity.Y < 0) //снизу
+                            else if (prevPos.Y - 20 >= plat.Y - 5 && velocity.Y < 0) //снизу
                             {
-                                position.Y = plat.Rect.Y + plat.Rect.Height + 20;
+                                position.Y = plat.Y + plat.Height + 20;
                                 velocity.Y *= -bounceFactor * 0.5f;
                                 bouncesComplete += 1;
                             }
                             else
                             {
-                                if (prevPos.X + 20 <= plat.Rect.X + 5)
+                                if (prevPos.X + 20 <= plat.X + 5)
                                 {
-                                    position.X = plat.Rect.X - 20;
+                                    position.X = plat.X - 20;
                                 }
-                                else if (prevPos.X - 20 <= plat.Rect.X + plat.Rect.Height - 5)
+                                else if (prevPos.X - 20 <= plat.X + plat.Height - 5)
                                 {
-                                    position.X = plat.Rect.X + plat.Rect.Width + 20;
+                                    position.X = plat.X + plat.Width + 20;
                                 }
                                 velocity.X *= -bounceFactor * 0.3f;
 
@@ -625,7 +745,7 @@ class Program
 
                 if (isAiMode)
                 {
-                    string stateKey = GetStateGameKey(position, velocity, finishLine, levelObjects, floorY, checkpointList, collectedCheckpoints, AIWinStreak);
+                    string stateKey = GetStateGameKey(position, velocity, finishLine, levelObjects, floorY, checkpointList, collectedCheckpoints, AIWinStreak, aiMemory, episodeTime);
 
                     Random rand = new Random();
                     aiDirection = ChooseActionAI(stateKey, rand, explorationRate, qTable);
@@ -634,7 +754,7 @@ class Program
                     lastReward = CalculateRewardAI(lastPos, position, finishLine, bouncesComplete, episodeTime);
 
                     //Q-Learning
-                    string prevStateKey = GetStateGameKey(position, velocity, finishLine, levelObjects, floorY, checkpointList, collectedCheckpoints, AIWinStreak);
+                    string prevStateKey = GetStateGameKey(position, velocity, finishLine, levelObjects, floorY, checkpointList, collectedCheckpoints, AIWinStreak, aiMemory, episodeTime);
                     string actionKey = $"{prevStateKey}_{aiDirection}";
 
                     if(qTable.ContainsKey(actionKey))
@@ -714,7 +834,7 @@ class Program
 
             if (isAiMode)
             {
-                float[] distances = ScanEnvironment(position, levelObjects, floorY);
+                float[] distances = ScanEnvironment(position, levelObjects, floorY, aiMemory, episodeTime);
 
                 //луч вверх
                 Vector2 upEnd = position + new Vector2(0, -distances[0]);
