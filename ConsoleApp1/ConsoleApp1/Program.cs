@@ -11,14 +11,34 @@ using ConsoleApp1;
 using System.ComponentModel.DataAnnotations;
 using System;
 using System.Windows.Forms;
+using System.ComponentModel.Design;
 class Program
 {
+    static int Restart(ref int collectedCheckpoints, ref Vector2 position, ref Vector2 velocity, ref int bouncesComplete, ref bool isFinished, ref float episodeTime, List<ILevelObject> allObjects)
+    {
+        foreach (var obj in allObjects)
+        {
+            if(obj is Checkpoint cp)
+            {
+                cp.IsCollected = false;
+            }
+           
+        }
+        collectedCheckpoints = 0;
+        position = new Vector2(400, 100);
+        velocity = Vector2.Zero;
+        bouncesComplete = 0;
+        isFinished = false;
+        episodeTime = 0f;
+        return 0;
+    }
+
     //нахождение близжайшего объекта пускает луч
-    static float Raycast(Vector2 origin, Vector2 direction, float maxDistance, List<Platform> platforms, float floorY)
+    static float Raycast(Vector2 origin, Vector2 direction, float maxDistance, List<ILevelObject> allObjects, float floorY)
     {
         float closestDist = maxDistance;
 
-        foreach(Platform platform in platforms)
+        foreach(Platform platform in allObjects)
         {
             Vector2[] corners = new Vector2[]
             {
@@ -62,32 +82,48 @@ class Program
     }
     //Сканер верха и низа
 
-    static float[] ScanEnvironment(Vector2 pos, List<Platform> platforms, float floorY)
+    static float[] ScanEnvironment(Vector2 pos, List<ILevelObject> allObj, float floorY)
     {
         float maxDist = 500f;
         float[] distances = new float[2];
 
         //луч вверх
-        distances[0] = Raycast(pos, new Vector2(0, -1), maxDist, platforms, floorY);
+        distances[0] = Raycast(pos, new Vector2(0, -1), maxDist, allObj, floorY);
         //луч вниз
-        distances[0] = Raycast(pos, new Vector2(0, 1), maxDist, platforms, floorY);
+        distances[1] = Raycast(pos, new Vector2(0, 1), maxDist, allObj, floorY);
 
         return distances;
     }
 
     //база ИИ
-    static string GetStateGameKey(Vector2 pos, Vector2 vel, RayRectangle? finish, List<Platform> platforms, float floorY)
+    static string GetStateGameKey(Vector2 pos, Vector2 vel, RayRectangle? finish, List<ILevelObject> allObj, float floorY, List<Checkpoint> checkpoints, int collectedCount, int streak)
     {
-        float[] distances = ScanEnvironment(pos, platforms, floorY);
+        float[] distances = ScanEnvironment(pos, allObj, floorY); //данные у ИИ
         float upDist = distances[0];
         float downDist = distances[1];
 
+        float nearestCPDist = 999;
+        string nearestCPDir = "C";
+        foreach(var Cp in checkpoints)
+        {
+            if (!Cp.IsCollected)
+            {
+                float dist = Vector2.Distance(pos, new Vector2(Cp.Rect.X, Cp.Rect.Y));
+                if (dist < nearestCPDist)
+                {
+                    nearestCPDist = dist;
+                    nearestCPDir = pos.X < Cp.Rect.X ? "R" : "L";
+                }
+            }
+        }
+
+        string cp = nearestCPDist < 100 ? "N" : (upDist < 150 ? "M" : "L");
         string finishDir = finish.HasValue ? (pos.X < finish.Value.X ? "R" : "L") : "C";
         string height = pos.Y > 400 ? "Low" : "Hight";
         string speed = Math.Abs(vel.X) > 200 ? "Fast" : "Slow";
         string up = upDist < 50 ? "N" : (upDist < 150 ? "M" : "F");
         string down = downDist < 50 ? "N" : (downDist < 150 ? "M" : "F");
-        return $"{finishDir}_{height}_{speed}_{up}_{down}";
+        return $"{finishDir}_{height}_{nearestCPDir}_{cp}_{collectedCount}_{checkpoints.Count}_{streak}_{speed}_{up}_{down}";
     }
 
     static int ChooseActionAI(string stateKey, Random random, float explorationRate, Dictionary<string, float> QTable)
@@ -127,35 +163,25 @@ class Program
         return reward;
     }
 
-    static void SaveLevel(string fileName, string name, List<Platform> platforms, RayRectangle? finishLine)
+    static void SaveLevel(string fileName, string name, List<ILevelObject> allObj, RayRectangle? finishLine)
     {
         if (!Directory.Exists("Levels")) //нет папки
         {
             Directory.CreateDirectory("Levels");
         }
 
-        List<PlatformData> platformDataList = new List<PlatformData>();
-        foreach (var plat in platforms)
+        LevelData data = new LevelData { Name = name};
+        foreach (var obj in allObj)
         {
-            platformDataList.Add(new PlatformData
-            {
-                X = plat.Rect.X,
-                Y = plat.Rect.Y,
-                Width = plat.Rect.Width, 
-                Height = plat.Rect.Height,
-            });
+            if(obj is Platform p) { data.Platforms.Add(p); }
+            if (obj is Checkpoint c) { data.Checkpoints.Add(c); }
         }
 
 
-        LevelData data = new LevelData
-        {
-            Name = name,
-            Platforms = platformDataList,
-            FinishLineX = finishLine?.X,
-            FinishLineY = finishLine?.Y,
-            FinishLineWidth = finishLine?.Width,
-            FinishLineHeight = finishLine?.Height
-        };
+        data.FinishLineX = finishLine?.X;
+        data.FinishLineY = finishLine?.Y;
+        data.FinishLineWidth = finishLine?.Width;
+        data.FinishLineHeight = finishLine?.Height;
         
 
         string json = JsonSerializer.Serialize(data, new JsonSerializerOptions { WriteIndented = true });
@@ -216,12 +242,13 @@ class Program
         Vector2 gravity = new Vector2( 0, 500); //м/с s500
         float floorY = 550; //пол Y
         float bounceFactor = 0.8f; // возрат прыжка, 1 = полный возрат s0.6
+        int collectedCheckpoints = 0;
 
         float kMatch = 0.3f; //коэфициент масштаба дебажинг(скорость масштаба)
 
         //редактор
         bool isEditMode = false;
-        List<Platform> platforms = new List<Platform>();
+        List<ILevelObject> levelObjects = new List<ILevelObject>();
         //НАСТРОЙКИ РЕДАКТОРА
         const float GRID_SIZE = 32;
         const int PLATFORM_WIDTH = 96;
@@ -230,7 +257,17 @@ class Program
         //игровой цикл
         while (!Raylib.WindowShouldClose())
         {
-            if(Raylib.IsKeyPressed(KeyboardKey.P))
+            List<Checkpoint> checkpointList = new List<Checkpoint>();
+            foreach (var checkSc in levelObjects)
+            {
+                if (checkSc is Checkpoint)
+                {
+                    checkpointList.Add((Checkpoint)checkSc);
+                }
+            }
+
+
+            if (Raylib.IsKeyPressed(KeyboardKey.P))
             {
                 isAiMode = !isAiMode;
                 Console.WriteLine(isAiMode ? "ИИ включен" : "ИИ выключен");
@@ -335,7 +372,7 @@ class Program
                     else
                     {
                         string safeFileName = LevelName.Replace(" ", "_").Replace("/", "-");//заменяем пробелы и /
-                        SaveLevel(safeFileName, LevelName, platforms, finishLine);
+                        SaveLevel(safeFileName, LevelName, levelObjects, finishLine);
                         isNamingMode = false;
                     }
                 }
@@ -358,24 +395,32 @@ class Program
                     {
                         string filePath = openFileDialog.FileName;
                         string fileName = Path.GetFileNameWithoutExtension(filePath);
-                        
+
                         LevelData? loaded = LoadLevel(fileName);
                         if (loaded != null)
                         {
-                            platforms = new List<Platform>();
-                            foreach (var platData in loaded.Platforms)
+                            levelObjects.Clear();
+
+                            if (loaded.Platforms != null)
                             {
-                                platforms.Add(new Platform(platData.X, platData.Y, platData.Width, platData.Height));
+                                foreach (var p in loaded.Platforms)
+                                {
+                                    levelObjects.Add(p);
+                                }
+                            }
+                            if (loaded.Checkpoints != null)
+                            {
+                                foreach (var c in loaded.Checkpoints)
+                                {
+                                    levelObjects.Add(c);
+                                }
                             }
 
                             if (loaded.FinishLineX.HasValue && loaded.FinishLineY.HasValue && loaded.FinishLineWidth.HasValue && loaded.FinishLineHeight.HasValue)
                             {
-                                finishLine = new RayRectangle
-                                (
-                                    loaded.FinishLineX.Value,
-                                    loaded.FinishLineY.Value,
-                                    loaded.FinishLineWidth.Value,
-                                    loaded.FinishLineHeight.Value
+                                finishLine = new RayRectangle(
+                                    loaded.FinishLineX.Value, loaded.FinishLineY.Value,
+                                    loaded.FinishLineWidth.Value, loaded.FinishLineHeight.Value
                                 );
                             }
                             else
@@ -397,10 +442,13 @@ class Program
                     if (Raylib.IsKeyDown(KeyboardKey.F))
                     {
                         finishLine = new RayRectangle(snappedPos.X, snappedPos.Y, 60, 100);
+                    }else if (Raylib.IsKeyDown(KeyboardKey.C))
+                    {
+                        levelObjects.Add(new Checkpoint(snappedPos.X, snappedPos.Y, GRID_SIZE * 2, GRID_SIZE * 2));
                     }
                     else
                     {
-                        platforms.Add(new Platform(snappedPos.X, snappedPos.Y, GRID_SIZE * 2, GRID_SIZE / 2));
+                        levelObjects.Add(new Platform(snappedPos.X, snappedPos.Y, GRID_SIZE * 2, GRID_SIZE / 2));
                     }
 
                 }
@@ -414,11 +462,11 @@ class Program
                     }
                     else
                     {
-                        for (int i = platforms.Count - 1; i >= 0; i--)
+                        for (int i = levelObjects.Count - 1; i >= 0; i--)
                         {
-                            if (Raylib.CheckCollisionPointRec(mousePos, platforms[i].Rect))
+                            if (Raylib.CheckCollisionPointRec(mousePos, levelObjects[i].Bounds))
                             {
-                                platforms.RemoveAt(i);
+                                levelObjects.RemoveAt(i);
                                 break;
                             }
                         }
@@ -426,26 +474,39 @@ class Program
                 }
             }
 
-            //ФИЗИКА РЕДАКТОРА
+   //ФИЗИКА РЕДАКТОРА
             if (!isEditMode)
             {
+                string WinOrNotText = "";
                 episodeTime += deltaTime;
                 //столкновение с финишем
                 if (!isFinished)
                 {
                     if(finishLine.HasValue && Raylib.CheckCollisionCircleRec(position, 20, finishLine.Value))
                     {
-                        isFinished = true;
-
-                        if (isAiMode)
+                        if(checkpointList.Count > 0 && collectedCheckpoints == 0)
                         {
-                            AIWinStreak++;
-                            string stateKey = GetStateGameKey(position, velocity, finishLine, platforms, floorY);
-                            qTable[$"{stateKey}_{aiDirection}"] += 1000;
-                            explorationRate -= 0.1f * (episodeTime / 1.5f);
+                            Console.WriteLine("надо собрать хоть одну контрольную точку");
+                            WinOrNotText = "Проигрышь";
+                            Restart(ref collectedCheckpoints, ref position, ref velocity, ref bouncesComplete, ref isFinished, ref episodeTime, levelObjects);
                         }
 
-                        bool FilesIsEmpty = !File.Exists(csvPath) || File.ReadAllText(csvPath).Trim() == "";
+                        isFinished = true;
+
+                        if (isAiMode && collectedCheckpoints == checkpointList.Count)
+                        {
+                            AIWinStreak++;
+                            string stateKey = GetStateGameKey(position, velocity, finishLine, levelObjects, floorY, checkpointList, collectedCheckpoints, AIWinStreak);
+                            qTable[$"{stateKey}_{aiDirection}"] += 1000;
+                            explorationRate -= 0.1f * (episodeTime / 1.5f);
+                            WinOrNotText = "Выигрышь";
+                        }
+                        else
+                        {
+                            AIWinStreak = 0;
+                        }
+
+                            bool FilesIsEmpty = !File.Exists(csvPath) || File.ReadAllText(csvPath).Trim() == "";
 
                         if (FilesIsEmpty)
                         {
@@ -462,16 +523,11 @@ class Program
                             MinTimePeople = episodeTime;
                         }
 
-                        string WinOrNotText = isFinished ? "Выигрыш" : "Проигрыш";
                         string newLine = $"{isAiMode}; {PeopleBestBounces}; {LevelName:F2}; {episodeTime:F2}; {bouncesComplete}; {explorationRate}; {WinOrNotText} \n";
                         File.AppendAllText(csvPath, newLine);
 
                         Console.WriteLine($"\nданные сохранены в telemetry.csv. Лучшая скорость на данный момент при выигрыше AI = {MinTimeAI}. Человек = {MinTimePeople}\n");
-                        position = new Vector2(400, 100);
-                        velocity = Vector2.Zero;
-                        bouncesComplete = 0;
-                        isFinished = false;
-                        episodeTime = 0f;
+                        Restart(ref collectedCheckpoints, ref position, ref velocity, ref bouncesComplete, ref isFinished, ref episodeTime, levelObjects);
                     }
                 }
                 else
@@ -480,9 +536,32 @@ class Program
                     explorationRate += 0.1f;
                 }
 
+                //столкновения с контрольными точками
+                for(int i = levelObjects.Count - 1; i >= 0; i--)
+                {
+                    var obj = levelObjects[i];
+
+                    if(obj.CheckCollision(position, 20))
+                    {
+                        bool shouldRemove = obj.OnCollisionWithBallAndAditionActions(position, 20);
+                        if(shouldRemove)
+                        {
+                            levelObjects.RemoveAt(i);
+                        }
+
+                        if(obj is Checkpoint cp && cp.IsCollected)
+                        {
+                            collectedCheckpoints++;
+                        }
+                    }
+                }
 
 
-                    foreach (var plat in platforms)
+
+                    foreach (var obj in levelObjects)
+                    {
+
+                    if(obj is Platform plat)
                     {
                         bool collisionX = position.X + 20 > plat.Rect.X && position.X - 20 < plat.Rect.X + plat.Rect.Width;
                         bool collisionY = position.Y + 20 > plat.Rect.Y && position.Y - 20 < plat.Rect.Y + plat.Rect.Height;
@@ -519,6 +598,8 @@ class Program
                             }
                         }
                     }
+                        
+                    }
 
 
 
@@ -540,9 +621,11 @@ class Program
 
                 float moveInput = 0f;
 
+               
+
                 if (isAiMode)
                 {
-                    string stateKey = GetStateGameKey(position, velocity, finishLine, platforms, floorY);
+                    string stateKey = GetStateGameKey(position, velocity, finishLine, levelObjects, floorY, checkpointList, collectedCheckpoints, AIWinStreak);
 
                     Random rand = new Random();
                     aiDirection = ChooseActionAI(stateKey, rand, explorationRate, qTable);
@@ -551,7 +634,7 @@ class Program
                     lastReward = CalculateRewardAI(lastPos, position, finishLine, bouncesComplete, episodeTime);
 
                     //Q-Learning
-                    string prevStateKey = GetStateGameKey(lastPos, velocity, finishLine, platforms, floorY);
+                    string prevStateKey = GetStateGameKey(position, velocity, finishLine, levelObjects, floorY, checkpointList, collectedCheckpoints, AIWinStreak);
                     string actionKey = $"{prevStateKey}_{aiDirection}";
 
                     if(qTable.ContainsKey(actionKey))
@@ -615,18 +698,23 @@ class Program
 
             //рисование платформ
 
-            foreach(var plat in platforms)
+            foreach(var obj in levelObjects)
             {
-                RayColor color = isEditMode ? new RayColor(100, 150, 255, 255) : RayColor.Gray;
-                Raylib.DrawRectangleRec(plat.Rect, color);
-                Raylib.DrawRectangleLinesEx(plat.Rect, 1, RayColor.DarkGray);
+                obj.Draw();
+            }
+
+            //рисование контрольных точек
+
+            foreach (var obj in levelObjects)
+            {
+                obj.Draw();
             }
 
             //рисование лучей ии
 
             if (isAiMode)
             {
-                float[] distances = ScanEnvironment(position, platforms, floorY);
+                float[] distances = ScanEnvironment(position, levelObjects, floorY);
 
                 //луч вверх
                 Vector2 upEnd = position + new Vector2(0, -distances[0]);

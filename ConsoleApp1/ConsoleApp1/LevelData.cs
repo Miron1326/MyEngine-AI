@@ -10,7 +10,8 @@ namespace ConsoleApp1
     internal class LevelData
     {
         public string Name { get; set; } = "";
-        public List<PlatformData> Platforms { get; set; } = new List<PlatformData>();
+        public List<Platform> Platforms { get; set; } = new List<Platform>();
+        public List<Checkpoint> Checkpoints { get; set; } = new List<Checkpoint>();
         public float? FinishLineX { get; set; }
         public float? FinishLineY { get; set; }
         public float? FinishLineWidth { get; set; }
